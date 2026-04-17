@@ -60,9 +60,9 @@ const BookingIndexRoute = BookingIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const BookingConfirmRoute = BookingConfirmRouteImport.update({
-  id: '/confirm',
-  path: '/confirm',
-  getParentRoute: () => BookingRoute,
+  id: '/booking/confirm',
+  path: '/booking/confirm',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -143,6 +143,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MembershipRoute: typeof MembershipRoute
   RegisterRoute: typeof RegisterRoute
+  BookingConfirmRoute: typeof BookingConfirmRoute
   BookingIndexRoute: typeof BookingIndexRoute
 }
 
@@ -206,10 +207,10 @@ declare module '@tanstack/react-router' {
     }
     '/booking/confirm': {
       id: '/booking/confirm'
-      path: '/confirm'
+      path: '/booking/confirm'
       fullPath: '/booking/confirm'
       preLoaderRoute: typeof BookingConfirmRouteImport
-      parentRoute: typeof BookingRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -222,17 +223,9 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MembershipRoute: MembershipRoute,
   RegisterRoute: RegisterRoute,
+  BookingConfirmRoute: BookingConfirmRoute,
   BookingIndexRoute: BookingIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
