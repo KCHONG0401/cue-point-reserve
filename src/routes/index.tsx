@@ -1,26 +1,37 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
+import { Hero } from "@/components/Hero";
+import { FeaturedSection } from "@/components/FeaturedSection";
+import { CTASection } from "@/components/CTASection";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "147 Snooker Club — Johor Bahru 最顶级斯诺克俱乐部" },
+      {
+        name: "description",
+        content:
+          "147 Snooker Club 位于 Johor Bahru，提供 12 张专业斯诺克球台、VIP 包厢、专业教练团队和会员俱乐部。立即在线预订，体验完美一杆。",
+      },
+      { property: "og:title", content: "147 Snooker Club — 完美一杆" },
+      { property: "og:description", content: "Johor Bahru 最顶级斯诺克俱乐部，立即在线预订球台。" },
+      { property: "og:type", content: "website" },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen bg-background text-foreground">
+      <Navbar />
+      <main>
+        <Hero />
+        <FeaturedSection />
+        <CTASection />
+      </main>
+      <Footer />
     </div>
   );
-}
-
-function Index() {
-  return <PlaceholderIndex />;
 }
