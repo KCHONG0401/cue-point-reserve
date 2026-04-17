@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { QRCodeSVG } from "qrcode.react";
@@ -76,7 +76,23 @@ function ConfirmPage() {
     );
   }
 
-  if (!booking) throw notFound();
+  if (!booking) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center px-4 text-center">
+          <h1 className="font-display text-3xl font-bold">预订未找到</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            该预订记录不存在或已过期，请重新预订。
+          </p>
+          <Button asChild variant="hero" className="mt-6">
+            <Link to="/booking">返回预订</Link>
+          </Button>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   const typeMeta = {
     Standard: { icon: Sparkles, color: "text-muted-foreground" },

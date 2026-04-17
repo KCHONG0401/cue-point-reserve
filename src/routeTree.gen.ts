@@ -14,9 +14,9 @@ import { Route as MembershipRouteImport } from './routes/membership'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as ContactRouteImport } from './routes/contact'
-import { Route as BookingRouteImport } from './routes/booking'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BookingIndexRouteImport } from './routes/booking.index'
 import { Route as BookingConfirmRouteImport } from './routes/booking.confirm'
 
 const RegisterRoute = RegisterRouteImport.update({
@@ -44,11 +44,6 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BookingRoute = BookingRouteImport.update({
-  id: '/booking',
-  path: '/booking',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -59,91 +54,97 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BookingIndexRoute = BookingIndexRouteImport.update({
+  id: '/booking/',
+  path: '/booking/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BookingConfirmRoute = BookingConfirmRouteImport.update({
-  id: '/confirm',
-  path: '/confirm',
-  getParentRoute: () => BookingRoute,
+  id: '/booking/confirm',
+  path: '/booking/confirm',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/booking': typeof BookingRouteWithChildren
   '/contact': typeof ContactRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
   '/membership': typeof MembershipRoute
   '/register': typeof RegisterRoute
   '/booking/confirm': typeof BookingConfirmRoute
+  '/booking/': typeof BookingIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/booking': typeof BookingRouteWithChildren
   '/contact': typeof ContactRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
   '/membership': typeof MembershipRoute
   '/register': typeof RegisterRoute
   '/booking/confirm': typeof BookingConfirmRoute
+  '/booking': typeof BookingIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/booking': typeof BookingRouteWithChildren
   '/contact': typeof ContactRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
   '/membership': typeof MembershipRoute
   '/register': typeof RegisterRoute
   '/booking/confirm': typeof BookingConfirmRoute
+  '/booking/': typeof BookingIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/about'
-    | '/booking'
     | '/contact'
     | '/events'
     | '/login'
     | '/membership'
     | '/register'
     | '/booking/confirm'
+    | '/booking/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
-    | '/booking'
     | '/contact'
     | '/events'
     | '/login'
     | '/membership'
     | '/register'
     | '/booking/confirm'
+    | '/booking'
   id:
     | '__root__'
     | '/'
     | '/about'
-    | '/booking'
     | '/contact'
     | '/events'
     | '/login'
     | '/membership'
     | '/register'
     | '/booking/confirm'
+    | '/booking/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  BookingRoute: typeof BookingRouteWithChildren
   ContactRoute: typeof ContactRoute
   EventsRoute: typeof EventsRoute
   LoginRoute: typeof LoginRoute
   MembershipRoute: typeof MembershipRoute
   RegisterRoute: typeof RegisterRoute
+  BookingConfirmRoute: typeof BookingConfirmRoute
+  BookingIndexRoute: typeof BookingIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -183,13 +184,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/booking': {
-      id: '/booking'
-      path: '/booking'
-      fullPath: '/booking'
-      preLoaderRoute: typeof BookingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -204,36 +198,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/booking/': {
+      id: '/booking/'
+      path: '/booking'
+      fullPath: '/booking/'
+      preLoaderRoute: typeof BookingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/booking/confirm': {
       id: '/booking/confirm'
-      path: '/confirm'
+      path: '/booking/confirm'
       fullPath: '/booking/confirm'
       preLoaderRoute: typeof BookingConfirmRouteImport
-      parentRoute: typeof BookingRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface BookingRouteChildren {
-  BookingConfirmRoute: typeof BookingConfirmRoute
-}
-
-const BookingRouteChildren: BookingRouteChildren = {
-  BookingConfirmRoute: BookingConfirmRoute,
-}
-
-const BookingRouteWithChildren =
-  BookingRoute._addFileChildren(BookingRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  BookingRoute: BookingRouteWithChildren,
   ContactRoute: ContactRoute,
   EventsRoute: EventsRoute,
   LoginRoute: LoginRoute,
   MembershipRoute: MembershipRoute,
   RegisterRoute: RegisterRoute,
+  BookingConfirmRoute: BookingConfirmRoute,
+  BookingIndexRoute: BookingIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
