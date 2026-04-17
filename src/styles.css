@@ -189,6 +189,10 @@
     box-shadow: var(--shadow-neon-sm);
   }
 
+  .shadow-gold-sm {
+    box-shadow: var(--shadow-gold-sm);
+  }
+
   .shadow-elegant {
     box-shadow: var(--shadow-elegant);
   }
