@@ -3,7 +3,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { BookingFlow } from "@/components/BookingFlow";
 
-export const Route = createFileRoute("/booking")({
+export const Route = createFileRoute("/booking/")({
   head: () => ({
     meta: [
       { title: "球台预订 — 147 Snooker Club" },
