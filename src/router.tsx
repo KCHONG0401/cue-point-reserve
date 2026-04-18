@@ -59,7 +59,14 @@ export const getRouter = () => {
     routeTree,
     context: {},
     scrollRestoration: true,
-    defaultPreloadStaleTime: 0,
+    // 鼠标 hover 链接时预取路由 chunk 和 loader 数据 — 让点击近乎瞬开
+    defaultPreload: "intent",
+    // 60s 内重复访问直接走缓存
+    defaultPreloadStaleTime: 60_000,
+    defaultStaleTime: 30_000,
+    // 切换时立即显示 pendingComponent，无 200ms 延迟
+    defaultPendingMs: 0,
+    defaultPendingMinMs: 0,
     defaultErrorComponent: DefaultErrorComponent,
   });
 
