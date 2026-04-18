@@ -1,8 +1,10 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Menu, User, X } from "lucide-react";
+import { LayoutDashboard, LogOut, Menu, User, X } from "lucide-react";
 import { Logo } from "./Logo";
 import { Button } from "./ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const navItems = [
   { to: "/", label: "首页" },
@@ -16,12 +18,23 @@ const navItems = [
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { user, profile, isAdmin, signOut } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  async function handleSignOut() {
+    await signOut();
+    toast.success("已退出登录");
+    navigate({ to: "/" });
+    setOpen(false);
+  }
+
+  const displayName = profile?.name || user?.email?.split("@")[0] || "会员";
 
   return (
     <header
@@ -46,14 +59,35 @@ export function Navbar() {
               {item.label}
             </Link>
           ))}
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="ml-1 inline-flex items-center gap-1 rounded-md border border-gold/40 bg-gold/10 px-3 py-2 text-sm font-medium text-gold transition-smooth hover:bg-gold/20"
+            >
+              <LayoutDashboard className="size-4" />
+              管理后台
+            </Link>
+          )}
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/login">
-              <User className="mr-1" /> 登录
-            </Link>
-          </Button>
+          {user ? (
+            <>
+              <span className="text-sm text-muted-foreground">
+                {isAdmin && <span className="mr-2 rounded bg-gold/20 px-1.5 py-0.5 text-[10px] font-bold uppercase text-gold">Admin</span>}
+                {displayName}
+              </span>
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                <LogOut className="mr-1 size-4" /> 退出
+              </Button>
+            </>
+          ) : (
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/login">
+                <User className="mr-1" /> 登录
+              </Link>
+            </Button>
+          )}
           <Button asChild variant="hero" size="sm">
             <Link to="/booking">立即预订</Link>
           </Button>
@@ -83,10 +117,25 @@ export function Navbar() {
                 {item.label}
               </Link>
             ))}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                onClick={() => setOpen(false)}
+                className="mt-1 inline-flex items-center gap-2 rounded-md border border-gold/40 bg-gold/10 px-3 py-3 text-sm font-medium text-gold"
+              >
+                <LayoutDashboard className="size-4" /> 管理后台
+              </Link>
+            )}
             <div className="mt-3 grid grid-cols-2 gap-2 border-t border-border/60 pt-3">
-              <Button asChild variant="outline" size="sm" onClick={() => setOpen(false)}>
-                <Link to="/login">登录</Link>
-              </Button>
+              {user ? (
+                <Button variant="outline" size="sm" onClick={handleSignOut}>
+                  <LogOut className="mr-1 size-4" /> 退出
+                </Button>
+              ) : (
+                <Button asChild variant="outline" size="sm" onClick={() => setOpen(false)}>
+                  <Link to="/login">登录</Link>
+                </Button>
+              )}
               <Button asChild variant="hero" size="sm" onClick={() => setOpen(false)}>
                 <Link to="/booking">立即预订</Link>
               </Button>

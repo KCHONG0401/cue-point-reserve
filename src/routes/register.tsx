@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const schema = z.object({
   name: z.string().trim().min(2, { message: "请输入姓名" }).max(50),
   phone: z.string().trim().regex(/^[0-9+\-\s]{8,20}$/, { message: "请输入有效手机号" }),
   email: z.string().trim().email({ message: "请输入有效邮箱" }).max(255),
-  password: z.string().min(8, { message: "密码至少 8 位" }).max(72),
+  password: z.string().min(6, { message: "密码至少 6 位" }).max(72),
 });
 
 export const Route = createFileRoute("/register")({
@@ -48,9 +49,24 @@ function RegisterPage() {
     }
     setErrors({});
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
+    const redirectUrl = `${window.location.origin}/`;
+    const { error } = await supabase.auth.signUp({
+      email: result.data.email,
+      password: result.data.password,
+      options: {
+        emailRedirectTo: redirectUrl,
+        data: { name: result.data.name, phone: result.data.phone },
+      },
+    });
     setLoading(false);
-    toast.success("注册功能将在下一阶段接入 Lovable Cloud");
+    if (error) {
+      const msg = error.message.includes("already registered")
+        ? "邮箱已被注册，请直接登录"
+        : error.message;
+      toast.error(msg);
+      return;
+    }
+    toast.success("注册成功！欢迎加入 147 Snooker Club");
     navigate({ to: "/" });
   }
 
@@ -103,7 +119,7 @@ function RegisterPage() {
               id="password"
               name="password"
               type={showPwd ? "text" : "password"}
-              placeholder="至少 8 位"
+              placeholder="至少 6 位"
               className="pl-10 pr-10"
             />
             <button

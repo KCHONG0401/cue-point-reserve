@@ -36,6 +36,8 @@ import {
   type TimeSlot,
 } from "@/lib/snooker-tables";
 import { saveBooking } from "@/lib/booking-store";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const TYPE_META: Record<
   SnookerTable["type"],
@@ -54,6 +56,7 @@ const formSchema = z.object({
 
 export function BookingFlow() {
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
 
   const [date, setDate] = useState<Date>(() => new Date());
   const [duration, setDuration] = useState<Duration>(2);
@@ -111,7 +114,7 @@ export function BookingFlow() {
     setTableId(id);
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!selectedTable || !startSlot) {
       toast.error("请完成时段和球台选择");
@@ -133,13 +136,40 @@ export function BookingFlow() {
     setSubmitting(true);
 
     const bookingId = generateBookingId();
+    const startIdx = TIME_SLOTS.indexOf(startSlot);
+    const endSlot = TIME_SLOTS[startIdx + duration] ?? TIME_SLOTS[TIME_SLOTS.length - 1];
+    const dateStr = format(date, "yyyy-MM-dd");
+
+    // Persist to DB (RLS: user_id matches auth.uid() OR is null for guests)
+    const { error } = await supabase.from("bookings").insert({
+      booking_code: bookingId,
+      user_id: user?.id ?? null,
+      guest_name: result.data.name,
+      guest_phone: result.data.phone,
+      table_id: selectedTable.code,
+      table_type: selectedTable.type,
+      booking_date: dateStr,
+      start_slot: startSlot,
+      end_slot: endSlot,
+      duration_minutes: duration * 60,
+      total_price: totalPrice,
+      status: "active",
+    });
+
+    if (error) {
+      setSubmitting(false);
+      toast.error(`预订失败：${error.message}`);
+      return;
+    }
+
+    // Cache locally for instant confirm-page read
     saveBooking({
       bookingId,
       tableId: selectedTable.id,
       tableName: selectedTable.name,
       tableCode: selectedTable.code,
       tableType: selectedTable.type,
-      date: format(date, "yyyy-MM-dd"),
+      date: dateStr,
       startSlot,
       duration,
       guests: result.data.guests,
@@ -150,10 +180,9 @@ export function BookingFlow() {
       createdAt: new Date().toISOString(),
     });
 
-    setTimeout(() => {
-      setSubmitting(false);
-      navigate({ to: "/booking/confirm", search: { id: bookingId } });
-    }, 600);
+    setSubmitting(false);
+    void profile;
+    navigate({ to: "/booking/confirm", search: { id: bookingId } });
   }
 
   return (
