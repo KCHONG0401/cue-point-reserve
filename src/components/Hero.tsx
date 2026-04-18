@@ -46,8 +46,7 @@ export function Hero() {
         </h2>
 
         <p className="mb-10 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg animate-float-up" style={{ animationDelay: "0.3s" }}>
-          147 Snooker Club —— Johor Bahru 最顶级斯诺克俱乐部。
-          英式专业球台、Strachan 6811 台呢、专业教练团队，为每一位球友打造世界级体验。
+          {t("hero.desc")}
         </p>
 
         <div className="flex flex-col items-center gap-3 sm:flex-row animate-float-up" style={{ animationDelay: "0.4s" }}>
