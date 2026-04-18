@@ -2,8 +2,10 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, Award, Calendar, Sparkles } from "lucide-react";
 import heroImg from "@/assets/hero-snooker.jpg";
 import { Button } from "./ui/button";
+import { useLang } from "@/contexts/LanguageContext";
 
 export function Hero() {
+  const { t } = useLang();
   return (
     <section className="relative isolate min-h-screen overflow-hidden">
       {/* 背景图 */}
