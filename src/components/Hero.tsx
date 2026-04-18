@@ -2,15 +2,17 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, Award, Calendar, Sparkles } from "lucide-react";
 import heroImg from "@/assets/hero-snooker.jpg";
 import { Button } from "./ui/button";
+import { useLang } from "@/contexts/LanguageContext";
 
 export function Hero() {
+  const { t } = useLang();
   return (
     <section className="relative isolate min-h-screen overflow-hidden">
       {/* 背景图 */}
       <div className="absolute inset-0 -z-20">
         <img
           src={heroImg}
-          alt="斯诺克球台"
+          alt={t("hero.imgAlt")}
           width={1920}
           height={1080}
           className="h-full w-full object-cover opacity-50"
@@ -26,7 +28,7 @@ export function Hero() {
         {/* Badge */}
         <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-4 py-1.5 text-xs font-medium text-primary backdrop-blur animate-float-up">
           <Sparkles className="size-3.5" />
-          Johor Bahru · 顶级斯诺克会所
+          {t("hero.badge")}
         </div>
 
         {/* 147 巨型数字 */}
@@ -44,22 +46,21 @@ export function Hero() {
         </h2>
 
         <p className="mb-10 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg animate-float-up" style={{ animationDelay: "0.3s" }}>
-          147 Snooker Club —— Johor Bahru 最顶级斯诺克俱乐部。
-          英式专业球台、Strachan 6811 台呢、专业教练团队，为每一位球友打造世界级体验。
+          {t("hero.desc")}
         </p>
 
         <div className="flex flex-col items-center gap-3 sm:flex-row animate-float-up" style={{ animationDelay: "0.4s" }}>
           <Button asChild variant="hero" size="xl">
             <Link to="/booking">
               <Calendar className="mr-1" />
-              立即预订球台
+              {t("hero.cta1")}
               <ArrowRight className="ml-1" />
             </Link>
           </Button>
           <Button asChild variant="neon" size="xl">
             <Link to="/membership">
               <Award className="mr-1" />
-              加入会员
+              {t("hero.cta2")}
             </Link>
           </Button>
         </div>
@@ -67,9 +68,9 @@ export function Hero() {
         {/* 数据 */}
         <div className="mt-20 grid w-full max-w-3xl grid-cols-3 gap-4 border-t border-border/60 pt-10 animate-float-up" style={{ animationDelay: "0.5s" }}>
           {[
-            { num: "12", label: "专业球台" },
-            { num: "5,000+", label: "注册会员" },
-            { num: "147", label: "满杆梦想" },
+            { num: "12", label: t("hero.stat1") },
+            { num: "5,000+", label: t("hero.stat2") },
+            { num: "147", label: t("hero.stat3") },
           ].map((s) => (
             <div key={s.label} className="text-center">
               <div className="font-display text-2xl font-bold text-gradient-neon md:text-4xl">
