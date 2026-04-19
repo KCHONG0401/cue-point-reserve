@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Award, Building2, Coffee, Lightbulb, ShieldCheck, Sparkles, Target, Trophy, Users, Wifi } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -46,6 +47,17 @@ const COACHES = [
 ];
 
 function AboutPage() {
+  const { get } = useSiteSettings();
+  const tagline = get(
+    "about_tagline",
+    "147 Snooker Club 创立于 2018 年，坐落于 Johor Bahru 市中心。我们以世锦赛级标准打造每一张球台、训练每一位教练。",
+  );
+  const story = get(
+    "about_story",
+    "147 Snooker Club 创立于 2018 年，致力于为斯诺克爱好者提供专业级的对局环境与赛事级球台。",
+  );
+  const mission = get("about_mission", "");
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -62,9 +74,7 @@ function AboutPage() {
               是我们对极致的承诺
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
-              147 Snooker Club 创立于 2018 年，坐落于 Johor Bahru 市中心。
-              我们以世锦赛级标准打造每一张球台、训练每一位教练，
-              只为让每一位球友体会到真正的"职业级"斯诺克体验。
+              {tagline}
             </p>
           </div>
 
@@ -100,18 +110,14 @@ function AboutPage() {
               </h2>
             </div>
             <div className="space-y-4 text-sm leading-relaxed text-muted-foreground md:text-base">
-              <p>
-                创始人 Adrian Tan 在英国学习斯诺克 12 年，回到家乡 Johor Bahru 后发现，
-                南马地区缺少一个"真正职业"的练球场所——所有球台都达不到比赛标准。
-              </p>
-              <p>
-                于是他在 2018 年投资 200 万令吉，从英国进口 6 张 Star Tournament 球台，
-                聘请 WPBSA 认证教练团队，创立了 147 Snooker Club。
-              </p>
-              <p>
-                如今，147 已成为 JB 斯诺克爱好者的精神家园——从初学者到职业选手，
-                每个人都能在这里找到属于自己的那一杆。
-              </p>
+              {story.split(/\n+/).filter(Boolean).map((p, i) => (
+                <p key={i}>{p}</p>
+              ))}
+              {mission && (
+                <p className="border-l-2 border-primary/60 pl-4 italic text-foreground">
+                  {mission}
+                </p>
+              )}
             </div>
           </div>
         </section>
