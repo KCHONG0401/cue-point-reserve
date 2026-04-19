@@ -11,6 +11,8 @@ import {
   Loader2,
   Plus,
   RefreshCw,
+  Save,
+  Settings,
   Sparkles,
   StopCircle,
   Trophy,
@@ -32,9 +34,11 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { TABLES, TIME_SLOTS } from "@/lib/snooker-tables";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { saveSiteSetting, type SiteSetting } from "@/hooks/use-site-settings";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -65,6 +69,7 @@ interface BookingRow {
 
 interface ProfileRow {
   id: string;
+  account_id: string | null;
   name: string;
   phone: string | null;
   level: "bronze" | "silver" | "gold";
