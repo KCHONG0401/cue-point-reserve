@@ -462,6 +462,7 @@ function AdminPage() {
               <table className="w-full text-sm">
                 <thead className="border-b border-border/60 bg-muted/30 text-xs uppercase tracking-widest text-muted-foreground">
                   <tr>
+                    <th className="px-4 py-3 text-left">账号 ID</th>
                     <th className="px-4 py-3 text-left">姓名</th>
                     <th className="px-4 py-3 text-left">手机</th>
                     <th className="px-4 py-3 text-left">等级</th>
@@ -471,19 +472,24 @@ function AdminPage() {
                 <tbody>
                   {members.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="px-4 py-12 text-center text-muted-foreground">
+                      <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
                         暂无会员
                       </td>
                     </tr>
                   ) : (
                     members.map((m) => (
                       <tr key={m.id} className="border-b border-border/40 last:border-0">
+                        <td className="px-4 py-3 font-mono text-xs text-primary">
+                          {m.account_id || "—"}
+                        </td>
                         <td className="px-4 py-3 font-medium">{m.name || "—"}</td>
                         <td className="px-4 py-3 text-muted-foreground">{m.phone || "—"}</td>
                         <td className="px-4 py-3">
                           <Select
                             value={m.level}
-                            onValueChange={(v) => updateMember(m, { level: v as ProfileRow["level"] })}
+                            onValueChange={(v) =>
+                              updateMember(m, { level: v as ProfileRow["level"] })
+                            }
                           >
                             <SelectTrigger className="h-8 w-28">
                               <SelectValue />
@@ -496,7 +502,10 @@ function AdminPage() {
                           </Select>
                         </td>
                         <td className="px-4 py-3">
-                          <PointsEditor member={m} onSave={(pts) => updateMember(m, { points: pts })} />
+                          <PointsEditor
+                            member={m}
+                            onSave={(pts) => updateMember(m, { points: pts })}
+                          />
                         </td>
                       </tr>
                     ))
@@ -505,6 +514,21 @@ function AdminPage() {
               </table>
             </div>
           </Card>
+        </section>
+
+        {/* Site settings editor */}
+        <section className="mt-10">
+          <div className="mb-4 flex items-center gap-2">
+            <Settings className="size-5 text-gold" />
+            <h2 className="text-xl font-bold">网站信息</h2>
+            <span className="text-xs text-muted-foreground">
+              修改后实时同步到所有页面
+            </span>
+          </div>
+          <SiteSettingsEditor
+            settings={siteSettings}
+            onUpdate={(next) => setSiteSettings(next)}
+          />
         </section>
       </main>
 
