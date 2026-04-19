@@ -8,14 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { ACCOUNT_ID_REGEX, accountIdToEmail } from "@/lib/account";
+import { ACCOUNT_ID_REGEX, ACCOUNT_ID_HINT, accountIdToEmail } from "@/lib/account";
 
 const schema = z.object({
   accountId: z
     .string()
     .trim()
-    .regex(ACCOUNT_ID_REGEX, { message: "账号 ID 须为 4-20 位字母/数字，字母开头" }),
-  password: z.string().min(6, { message: "密码至少 6 位" }).max(72),
+    .regex(ACCOUNT_ID_REGEX, { message: ACCOUNT_ID_HINT }),
+  password: z.string().min(1, { message: "请输入密码" }).max(72),
 });
 
 export const Route = createFileRoute("/login")({
