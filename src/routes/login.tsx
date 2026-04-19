@@ -88,7 +88,7 @@ function LoginPage() {
             <Input
               id="accountId"
               name="accountId"
-              placeholder="例如 admin147"
+              placeholder=""
               className="pl-10"
               autoComplete="username"
               autoCapitalize="none"
