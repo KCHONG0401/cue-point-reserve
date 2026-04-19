@@ -153,7 +153,7 @@ function RegisterPage() {
               id="password"
               name="password"
               type={showPwd ? "text" : "password"}
-              placeholder="至少 6 位"
+              placeholder="字母+数字+标点，至少 8 位"
               className="pl-10 pr-10"
             />
             <button
