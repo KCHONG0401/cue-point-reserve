@@ -73,6 +73,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_id: string | null
           created_at: string
           id: string
           level: Database["public"]["Enums"]["member_level"]
@@ -82,6 +83,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_id?: string | null
           created_at?: string
           id: string
           level?: Database["public"]["Enums"]["member_level"]
@@ -91,6 +93,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_id?: string | null
           created_at?: string
           id?: string
           level?: Database["public"]["Enums"]["member_level"]
@@ -98,6 +101,33 @@ export type Database = {
           phone?: string | null
           points?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          category: string
+          key: string
+          label: string
+          updated_at: string
+          updated_by: string | null
+          value: string
+        }
+        Insert: {
+          category?: string
+          key: string
+          label?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: string
+        }
+        Update: {
+          category?: string
+          key?: string
+          label?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: string
         }
         Relationships: []
       }
