@@ -82,6 +82,7 @@ function AdminPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [members, setMembers] = useState<ProfileRow[]>([]);
+  const [siteSettings, setSiteSettings] = useState<SiteSetting[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const today = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
@@ -96,17 +97,26 @@ function AdminPage() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const [{ data: b }, { data: m }] = await Promise.all([
+      const [{ data: b }, { data: m }, { data: s }] = await Promise.all([
         supabase
           .from("bookings")
           .select("*")
           .eq("booking_date", today)
           .order("start_slot"),
-        supabase.from("profiles").select("id,name,phone,level,points").order("created_at", { ascending: false }),
+        supabase
+          .from("profiles")
+          .select("id,account_id,name,phone,level,points")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("site_settings")
+          .select("key,value,category,label")
+          .order("category")
+          .order("key"),
       ]);
       if (!cancelled) {
         setBookings((b ?? []) as BookingRow[]);
         setMembers((m ?? []) as ProfileRow[]);
+        setSiteSettings((s ?? []) as SiteSetting[]);
         setLoading(false);
       }
     })();
