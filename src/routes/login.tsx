@@ -1,16 +1,20 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
-import { Eye, EyeOff, Loader2, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, User as UserIcon } from "lucide-react";
 import { AuthShell } from "@/components/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { ACCOUNT_ID_REGEX, accountIdToEmail } from "@/lib/account";
 
 const schema = z.object({
-  email: z.string().trim().email({ message: "请输入有效邮箱" }).max(255),
+  accountId: z
+    .string()
+    .trim()
+    .regex(ACCOUNT_ID_REGEX, { message: "账号 ID 须为 4-20 位字母/数字，字母开头" }),
   password: z.string().min(6, { message: "密码至少 6 位" }).max(72),
 });
 
@@ -28,13 +32,13 @@ function LoginPage() {
   const navigate = useNavigate();
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ accountId?: string; password?: string }>({});
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const result = schema.safeParse({
-      email: form.get("email"),
+      accountId: form.get("accountId"),
       password: form.get("password"),
     });
     if (!result.success) {
@@ -48,16 +52,14 @@ function LoginPage() {
     setErrors({});
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({
-      email: result.data.email,
+      email: accountIdToEmail(result.data.accountId),
       password: result.data.password,
     });
     setLoading(false);
     if (error) {
       const msg = error.message.includes("Invalid login")
-        ? "邮箱或密码错误"
-        : error.message.includes("Email not confirmed")
-          ? "请先验证邮箱"
-          : error.message;
+        ? "账号或密码错误"
+        : error.message;
       toast.error(msg);
       return;
     }
@@ -68,7 +70,7 @@ function LoginPage() {
   return (
     <AuthShell
       title="欢迎回来"
-      subtitle="登录账号，开启你的完美一杆"
+      subtitle="使用账号 ID 登录，开启你的完美一杆"
       footer={
         <>
           还没有账号？{" "}
@@ -80,18 +82,24 @@ function LoginPage() {
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="email">邮箱</Label>
+          <Label htmlFor="accountId">账号 ID</Label>
           <div className="relative">
-            <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input id="email" name="email" type="email" placeholder="you@example.com" className="pl-10" autoComplete="email" />
+            <UserIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="accountId"
+              name="accountId"
+              placeholder="例如 admin147"
+              className="pl-10"
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
+            />
           </div>
-          {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+          {errors.accountId && <p className="text-xs text-destructive">{errors.accountId}</p>}
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="password">密码</Label>
-          </div>
+          <Label htmlFor="password">密码</Label>
           <div className="relative">
             <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -115,11 +123,20 @@ function LoginPage() {
         </div>
 
         <Button type="submit" variant="hero" size="lg" className="w-full" disabled={loading}>
-          {loading ? <><Loader2 className="animate-spin" /> 登录中...</> : "登录"}
+          {loading ? (
+            <>
+              <Loader2 className="animate-spin" /> 登录中...
+            </>
+          ) : (
+            "登录"
+          )}
         </Button>
 
         <p className="text-center text-xs text-muted-foreground">
-          管理员演示：<span className="font-mono text-primary">admin147@147snooker.club</span> / <span className="font-mono text-primary">147147</span>
+          管理员账号：<span className="font-mono text-primary">admin147</span> /{" "}
+          <span className="font-mono text-primary">147147</span>
+          <br />
+          <span className="text-[10px]">（首次使用请到注册页创建该账号）</span>
         </p>
       </form>
     </AuthShell>

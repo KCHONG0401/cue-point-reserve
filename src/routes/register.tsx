@@ -1,18 +1,28 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
-import { Eye, EyeOff, Loader2, Mail, Lock, User as UserIcon, Phone } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, Phone, User as UserIcon } from "lucide-react";
 import { AuthShell } from "@/components/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { ACCOUNT_ID_REGEX, accountIdToEmail } from "@/lib/account";
 
 const schema = z.object({
+  accountId: z
+    .string()
+    .trim()
+    .regex(ACCOUNT_ID_REGEX, { message: "账号 ID 须为 4-20 位字母/数字，字母开头" }),
   name: z.string().trim().min(2, { message: "请输入姓名" }).max(50),
-  phone: z.string().trim().regex(/^[0-9+\-\s]{8,20}$/, { message: "请输入有效手机号" }),
-  email: z.string().trim().email({ message: "请输入有效邮箱" }).max(255),
+  phone: z
+    .string()
+    .trim()
+    .max(20)
+    .optional()
+    .or(z.literal(""))
+    .refine((v) => !v || /^[0-9+\-\s]{8,20}$/.test(v), { message: "手机号格式无效" }),
   password: z.string().min(6, { message: "密码至少 6 位" }).max(72),
 });
 
@@ -36,9 +46,9 @@ function RegisterPage() {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const result = schema.safeParse({
+      accountId: form.get("accountId"),
       name: form.get("name"),
-      phone: form.get("phone"),
-      email: form.get("email"),
+      phone: form.get("phone") || "",
       password: form.get("password"),
     });
     if (!result.success) {
@@ -49,19 +59,24 @@ function RegisterPage() {
     }
     setErrors({});
     setLoading(true);
+    const accountIdLower = result.data.accountId.toLowerCase();
     const redirectUrl = `${window.location.origin}/`;
     const { error } = await supabase.auth.signUp({
-      email: result.data.email,
+      email: accountIdToEmail(accountIdLower),
       password: result.data.password,
       options: {
         emailRedirectTo: redirectUrl,
-        data: { name: result.data.name, phone: result.data.phone },
+        data: {
+          account_id: accountIdLower,
+          name: result.data.name,
+          phone: result.data.phone || null,
+        },
       },
     });
     setLoading(false);
     if (error) {
       const msg = error.message.includes("already registered")
-        ? "邮箱已被注册，请直接登录"
+        ? "该账号 ID 已被注册，请直接登录"
         : error.message;
       toast.error(msg);
       return;
@@ -85,7 +100,27 @@ function RegisterPage() {
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="name">姓名</Label>
+          <Label htmlFor="accountId">
+            账号 ID <span className="text-destructive">*</span>
+          </Label>
+          <div className="relative">
+            <UserIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="accountId"
+              name="accountId"
+              placeholder="4-20 位字母数字，字母开头"
+              className="pl-10"
+              autoCapitalize="none"
+              spellCheck={false}
+            />
+          </div>
+          {errors.accountId && <p className="text-xs text-destructive">{errors.accountId}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="name">
+            姓名 <span className="text-destructive">*</span>
+          </Label>
           <div className="relative">
             <UserIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input id="name" name="name" placeholder="您的姓名" className="pl-10" />
@@ -94,7 +129,7 @@ function RegisterPage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="phone">手机号</Label>
+          <Label htmlFor="phone">手机号（选填）</Label>
           <div className="relative">
             <Phone className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input id="phone" name="phone" placeholder="+60 12-345 6789" className="pl-10" />
@@ -103,16 +138,9 @@ function RegisterPage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email">邮箱</Label>
-          <div className="relative">
-            <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input id="email" name="email" type="email" placeholder="you@example.com" className="pl-10" />
-          </div>
-          {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="password">密码</Label>
+          <Label htmlFor="password">
+            密码 <span className="text-destructive">*</span>
+          </Label>
           <div className="relative">
             <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -140,7 +168,13 @@ function RegisterPage() {
         </p>
 
         <Button type="submit" variant="hero" size="lg" className="w-full" disabled={loading}>
-          {loading ? <><Loader2 className="animate-spin" /> 创建中...</> : "免费注册"}
+          {loading ? (
+            <>
+              <Loader2 className="animate-spin" /> 创建中...
+            </>
+          ) : (
+            "免费注册"
+          )}
         </Button>
       </form>
     </AuthShell>

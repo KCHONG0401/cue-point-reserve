@@ -11,6 +11,8 @@ import {
   Loader2,
   Plus,
   RefreshCw,
+  Save,
+  Settings,
   Sparkles,
   StopCircle,
   Trophy,
@@ -32,9 +34,11 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { TABLES, TIME_SLOTS } from "@/lib/snooker-tables";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { saveSiteSetting, type SiteSetting } from "@/hooks/use-site-settings";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -65,6 +69,7 @@ interface BookingRow {
 
 interface ProfileRow {
   id: string;
+  account_id: string | null;
   name: string;
   phone: string | null;
   level: "bronze" | "silver" | "gold";
@@ -77,6 +82,7 @@ function AdminPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [members, setMembers] = useState<ProfileRow[]>([]);
+  const [siteSettings, setSiteSettings] = useState<SiteSetting[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const today = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
@@ -91,17 +97,26 @@ function AdminPage() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const [{ data: b }, { data: m }] = await Promise.all([
+      const [{ data: b }, { data: m }, { data: s }] = await Promise.all([
         supabase
           .from("bookings")
           .select("*")
           .eq("booking_date", today)
           .order("start_slot"),
-        supabase.from("profiles").select("id,name,phone,level,points").order("created_at", { ascending: false }),
+        supabase
+          .from("profiles")
+          .select("id,account_id,name,phone,level,points")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("site_settings")
+          .select("key,value,category,label")
+          .order("category")
+          .order("key"),
       ]);
       if (!cancelled) {
         setBookings((b ?? []) as BookingRow[]);
         setMembers((m ?? []) as ProfileRow[]);
+        setSiteSettings((s ?? []) as SiteSetting[]);
         setLoading(false);
       }
     })();
@@ -447,6 +462,7 @@ function AdminPage() {
               <table className="w-full text-sm">
                 <thead className="border-b border-border/60 bg-muted/30 text-xs uppercase tracking-widest text-muted-foreground">
                   <tr>
+                    <th className="px-4 py-3 text-left">账号 ID</th>
                     <th className="px-4 py-3 text-left">姓名</th>
                     <th className="px-4 py-3 text-left">手机</th>
                     <th className="px-4 py-3 text-left">等级</th>
@@ -456,19 +472,24 @@ function AdminPage() {
                 <tbody>
                   {members.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="px-4 py-12 text-center text-muted-foreground">
+                      <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
                         暂无会员
                       </td>
                     </tr>
                   ) : (
                     members.map((m) => (
                       <tr key={m.id} className="border-b border-border/40 last:border-0">
+                        <td className="px-4 py-3 font-mono text-xs text-primary">
+                          {m.account_id || "—"}
+                        </td>
                         <td className="px-4 py-3 font-medium">{m.name || "—"}</td>
                         <td className="px-4 py-3 text-muted-foreground">{m.phone || "—"}</td>
                         <td className="px-4 py-3">
                           <Select
                             value={m.level}
-                            onValueChange={(v) => updateMember(m, { level: v as ProfileRow["level"] })}
+                            onValueChange={(v) =>
+                              updateMember(m, { level: v as ProfileRow["level"] })
+                            }
                           >
                             <SelectTrigger className="h-8 w-28">
                               <SelectValue />
@@ -481,7 +502,10 @@ function AdminPage() {
                           </Select>
                         </td>
                         <td className="px-4 py-3">
-                          <PointsEditor member={m} onSave={(pts) => updateMember(m, { points: pts })} />
+                          <PointsEditor
+                            member={m}
+                            onSave={(pts) => updateMember(m, { points: pts })}
+                          />
                         </td>
                       </tr>
                     ))
@@ -490,6 +514,21 @@ function AdminPage() {
               </table>
             </div>
           </Card>
+        </section>
+
+        {/* Site settings editor */}
+        <section className="mt-10">
+          <div className="mb-4 flex items-center gap-2">
+            <Settings className="size-5 text-gold" />
+            <h2 className="text-xl font-bold">网站信息</h2>
+            <span className="text-xs text-muted-foreground">
+              修改后实时同步到所有页面
+            </span>
+          </div>
+          <SiteSettingsEditor
+            settings={siteSettings}
+            onUpdate={(next) => setSiteSettings(next)}
+          />
         </section>
       </main>
 
@@ -571,5 +610,113 @@ function SkeletonGrid() {
   );
 }
 
-// Hide unused Label import warning
-void Label;
+// 网站设置编辑器：按 category 分组，多行/单行自适应
+const CATEGORY_LABEL: Record<string, string> = {
+  contact: "联系方式",
+  about: "关于我们",
+  home: "首页",
+  pricing: "价格",
+  general: "其他",
+};
+const LONG_TEXT_KEYS = new Set(["about_story", "about_mission", "about_tagline"]);
+
+function SiteSettingsEditor({
+  settings,
+  onUpdate,
+}: {
+  settings: SiteSetting[];
+  onUpdate: (next: SiteSetting[]) => void;
+}) {
+  const grouped = useMemo(() => {
+    const map: Record<string, SiteSetting[]> = {};
+    for (const s of settings) {
+      (map[s.category] ??= []).push(s);
+    }
+    return map;
+  }, [settings]);
+
+  if (settings.length === 0) {
+    return <Card className="p-8 text-center text-muted-foreground">暂无可编辑项</Card>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {Object.entries(grouped).map(([cat, items]) => (
+        <Card key={cat} className="border-border/60 p-5">
+          <h3 className="mb-4 text-sm font-semibold uppercase tracking-widest text-primary">
+            {CATEGORY_LABEL[cat] ?? cat}
+          </h3>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {items.map((s) => (
+              <SettingField
+                key={s.key}
+                setting={s}
+                long={LONG_TEXT_KEYS.has(s.key)}
+                onSaved={(v) =>
+                  onUpdate(settings.map((x) => (x.key === s.key ? { ...x, value: v } : x)))
+                }
+              />
+            ))}
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function SettingField({
+  setting,
+  long,
+  onSaved,
+}: {
+  setting: SiteSetting;
+  long: boolean;
+  onSaved: (value: string) => void;
+}) {
+  const [val, setVal] = useState(setting.value);
+  const [saving, setSaving] = useState(false);
+  const dirty = val !== setting.value;
+
+  async function save() {
+    setSaving(true);
+    try {
+      await saveSiteSetting(setting.key, val);
+      onSaved(val);
+      toast.success(`已保存：${setting.label}`);
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className={long ? "sm:col-span-2 space-y-2" : "space-y-2"}>
+      <Label className="text-xs">
+        {setting.label}
+        <span className="ml-2 font-mono text-[10px] text-muted-foreground">{setting.key}</span>
+      </Label>
+      {long ? (
+        <Textarea
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          rows={4}
+          className="resize-y"
+        />
+      ) : (
+        <Input value={val} onChange={(e) => setVal(e.target.value)} />
+      )}
+      {dirty && (
+        <Button size="sm" variant="outline" onClick={save} disabled={saving}>
+          {saving ? (
+            <Loader2 className="mr-1 size-3 animate-spin" />
+          ) : (
+            <Save className="mr-1 size-3" />
+          )}
+          保存
+        </Button>
+      )}
+    </div>
+  );
+}
+
