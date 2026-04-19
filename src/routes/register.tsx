@@ -114,7 +114,7 @@ function RegisterPage() {
             <Input
               id="accountId"
               name="accountId"
-              placeholder="4-20 位字母数字，字母开头"
+              placeholder="6-12 位，字母+数字组合"
               className="pl-10"
               autoCapitalize="none"
               spellCheck={false}
