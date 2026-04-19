@@ -131,13 +131,6 @@ function LoginPage() {
             "登录"
           )}
         </Button>
-
-        <p className="text-center text-xs text-muted-foreground">
-          管理员账号：<span className="font-mono text-primary">admin147</span> /{" "}
-          <span className="font-mono text-primary">147147</span>
-          <br />
-          <span className="text-[10px]">（首次使用请到注册页创建该账号）</span>
-        </p>
       </form>
     </AuthShell>
   );
