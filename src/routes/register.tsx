@@ -8,13 +8,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { ACCOUNT_ID_REGEX, accountIdToEmail } from "@/lib/account";
+import {
+  ACCOUNT_ID_REGEX,
+  ACCOUNT_ID_HINT,
+  PASSWORD_REGEX,
+  PASSWORD_HINT,
+  accountIdToEmail,
+} from "@/lib/account";
 
 const schema = z.object({
   accountId: z
     .string()
     .trim()
-    .regex(ACCOUNT_ID_REGEX, { message: "账号 ID 须为 4-20 位字母/数字，字母开头" }),
+    .regex(ACCOUNT_ID_REGEX, { message: ACCOUNT_ID_HINT }),
   name: z.string().trim().min(2, { message: "请输入姓名" }).max(50),
   phone: z
     .string()
@@ -23,7 +29,7 @@ const schema = z.object({
     .optional()
     .or(z.literal(""))
     .refine((v) => !v || /^[0-9+\-\s]{8,20}$/.test(v), { message: "手机号格式无效" }),
-  password: z.string().min(6, { message: "密码至少 6 位" }).max(72),
+  password: z.string().regex(PASSWORD_REGEX, { message: PASSWORD_HINT }).max(72),
 });
 
 export const Route = createFileRoute("/register")({
@@ -108,7 +114,7 @@ function RegisterPage() {
             <Input
               id="accountId"
               name="accountId"
-              placeholder="4-20 位字母数字，字母开头"
+              placeholder="6-12 位，字母+数字组合"
               className="pl-10"
               autoCapitalize="none"
               spellCheck={false}
@@ -147,7 +153,7 @@ function RegisterPage() {
               id="password"
               name="password"
               type={showPwd ? "text" : "password"}
-              placeholder="至少 6 位"
+              placeholder="字母+数字+标点，至少 8 位"
               className="pl-10 pr-10"
             />
             <button
