@@ -6,6 +6,7 @@ export type AppRole = "admin" | "member";
 
 export interface Profile {
   id: string;
+  account_id: string | null;
   name: string;
   phone: string | null;
   level: "bronze" | "silver" | "gold";
@@ -35,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function loadProfileAndRole(userId: string) {
     // Fetch in parallel; defer to avoid auth callback deadlock
     const [{ data: prof }, { data: roles }] = await Promise.all([
-      supabase.from("profiles").select("id,name,phone,level,points").eq("id", userId).maybeSingle(),
+      supabase.from("profiles").select("id,account_id,name,phone,level,points").eq("id", userId).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", userId),
     ]);
     setProfile(prof as Profile | null);
