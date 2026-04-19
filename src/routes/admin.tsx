@@ -610,5 +610,113 @@ function SkeletonGrid() {
   );
 }
 
-// Hide unused Label import warning
-void Label;
+// 网站设置编辑器：按 category 分组，多行/单行自适应
+const CATEGORY_LABEL: Record<string, string> = {
+  contact: "联系方式",
+  about: "关于我们",
+  home: "首页",
+  pricing: "价格",
+  general: "其他",
+};
+const LONG_TEXT_KEYS = new Set(["about_story", "about_mission", "about_tagline"]);
+
+function SiteSettingsEditor({
+  settings,
+  onUpdate,
+}: {
+  settings: SiteSetting[];
+  onUpdate: (next: SiteSetting[]) => void;
+}) {
+  const grouped = useMemo(() => {
+    const map: Record<string, SiteSetting[]> = {};
+    for (const s of settings) {
+      (map[s.category] ??= []).push(s);
+    }
+    return map;
+  }, [settings]);
+
+  if (settings.length === 0) {
+    return <Card className="p-8 text-center text-muted-foreground">暂无可编辑项</Card>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {Object.entries(grouped).map(([cat, items]) => (
+        <Card key={cat} className="border-border/60 p-5">
+          <h3 className="mb-4 text-sm font-semibold uppercase tracking-widest text-primary">
+            {CATEGORY_LABEL[cat] ?? cat}
+          </h3>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {items.map((s) => (
+              <SettingField
+                key={s.key}
+                setting={s}
+                long={LONG_TEXT_KEYS.has(s.key)}
+                onSaved={(v) =>
+                  onUpdate(settings.map((x) => (x.key === s.key ? { ...x, value: v } : x)))
+                }
+              />
+            ))}
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function SettingField({
+  setting,
+  long,
+  onSaved,
+}: {
+  setting: SiteSetting;
+  long: boolean;
+  onSaved: (value: string) => void;
+}) {
+  const [val, setVal] = useState(setting.value);
+  const [saving, setSaving] = useState(false);
+  const dirty = val !== setting.value;
+
+  async function save() {
+    setSaving(true);
+    try {
+      await saveSiteSetting(setting.key, val);
+      onSaved(val);
+      toast.success(`已保存：${setting.label}`);
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className={long ? "sm:col-span-2 space-y-2" : "space-y-2"}>
+      <Label className="text-xs">
+        {setting.label}
+        <span className="ml-2 font-mono text-[10px] text-muted-foreground">{setting.key}</span>
+      </Label>
+      {long ? (
+        <Textarea
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          rows={4}
+          className="resize-y"
+        />
+      ) : (
+        <Input value={val} onChange={(e) => setVal(e.target.value)} />
+      )}
+      {dirty && (
+        <Button size="sm" variant="outline" onClick={save} disabled={saving}>
+          {saving ? (
+            <Loader2 className="mr-1 size-3 animate-spin" />
+          ) : (
+            <Save className="mr-1 size-3" />
+          )}
+          保存
+        </Button>
+      )}
+    </div>
+  );
+}
+
