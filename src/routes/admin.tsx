@@ -39,6 +39,7 @@ import { TABLES, TIME_SLOTS } from "@/lib/snooker-tables";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { saveSiteSetting, type SiteSetting } from "@/hooks/use-site-settings";
+import { AdminAccountsPanel } from "@/components/AdminAccountsPanel";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -79,7 +80,8 @@ interface ProfileRow {
 const TYPE_ICON = { Standard: Sparkles, Pro: Trophy, VIP: Crown } as const;
 
 function AdminPage() {
-  const { user, isAdmin, loading: authLoading } = useAuth();
+  const { user, profile, isAdmin, loading: authLoading } = useAuth();
+  const isSuperAdmin = profile?.account_id === "admin147";
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [members, setMembers] = useState<ProfileRow[]>([]);
   const [siteSettings, setSiteSettings] = useState<SiteSetting[]>([]);
@@ -530,6 +532,8 @@ function AdminPage() {
             onUpdate={(next) => setSiteSettings(next)}
           />
         </section>
+
+        {isSuperAdmin && <AdminAccountsPanel />}
       </main>
 
       <Footer />
