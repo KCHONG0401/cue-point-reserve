@@ -91,9 +91,10 @@ export function AdminAccountsPanel() {
 
   async function togglePerm(row: AdminRow, key: keyof AdminRow["perms"], val: boolean) {
     if (row.is_super) return;
+    const patch = { [key]: val } as Partial<AdminRow["perms"]>;
     const { error } = await supabase
       .from("admin_permissions")
-      .update({ [key]: val })
+      .update(patch)
       .eq("user_id", row.user_id);
     if (error) {
       toast.error(error.message);
