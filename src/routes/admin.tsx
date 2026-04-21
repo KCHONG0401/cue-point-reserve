@@ -534,6 +534,8 @@ function AdminPage() {
           />
         </section>
 
+        <PostsManager />
+
         {isSuperAdmin && <AdminAccountsPanel />}
       </main>
 
