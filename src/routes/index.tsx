@@ -3,6 +3,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Hero } from "@/components/Hero";
 import { FeaturedSection } from "@/components/FeaturedSection";
+import { PostsFeed } from "@/components/PostsFeed";
 import { CTASection } from "@/components/CTASection";
 
 export const Route = createFileRoute("/")({
@@ -29,6 +30,7 @@ function Index() {
       <main>
         <Hero />
         <FeaturedSection />
+        <PostsFeed />
         <CTASection />
       </main>
       <Footer />

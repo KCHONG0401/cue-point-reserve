@@ -40,6 +40,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { saveSiteSetting, type SiteSetting } from "@/hooks/use-site-settings";
 import { AdminAccountsPanel } from "@/components/AdminAccountsPanel";
+import { PostsManager } from "@/components/PostsManager";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
