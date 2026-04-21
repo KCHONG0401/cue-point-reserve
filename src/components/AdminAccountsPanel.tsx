@@ -30,6 +30,7 @@ interface AdminRow {
     can_give_discount: boolean;
     can_manage_members: boolean;
     can_edit_site: boolean;
+    can_publish_posts: boolean;
   };
 }
 
@@ -38,6 +39,7 @@ const PERM_LABEL: Record<keyof AdminRow["perms"], string> = {
   can_give_discount: "折扣 / 改价",
   can_manage_members: "管理会员",
   can_edit_site: "修改网页内容",
+  can_publish_posts: "发布内容",
 };
 
 export function AdminAccountsPanel() {
@@ -76,6 +78,7 @@ export function AdminAccountsPanel() {
           can_give_discount: perm?.can_give_discount ?? true,
           can_manage_members: perm?.can_manage_members ?? true,
           can_edit_site: perm?.can_edit_site ?? true,
+          can_publish_posts: (perm as { can_publish_posts?: boolean })?.can_publish_posts ?? true,
         },
       };
     });
@@ -246,7 +249,7 @@ export function AdminAccountsPanel() {
                 )}
               </div>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                 {(Object.keys(PERM_LABEL) as Array<keyof AdminRow["perms"]>).map((k) => (
                   <label
                     key={k}
